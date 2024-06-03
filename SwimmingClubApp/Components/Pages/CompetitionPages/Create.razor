@@ -1,0 +1,50 @@
+﻿@page "/competitions/create"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+
+<PageTitle>Nowe zawody</PageTitle>
+
+<h4>Nowe wydarzenie:</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Competition" OnValidSubmit="AddCompetition" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="name" class="form-label">Nazwa:</label>
+                <InputText id="name" @bind-Value="Competition.Name" class="form-control" />
+                <ValidationMessage For="() => Competition.Name" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="date" class="form-label">Data:</label>
+                <InputDate id="date" @bind-Value="Competition.Date" class="form-control" />
+                <ValidationMessage For="() => Competition.Date" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="city" class="form-label">Miasto:</label>
+                <InputText id="city" @bind-Value="Competition.City" class="form-control" />
+                <ValidationMessage For="() => Competition.City" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Utwórz</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <br /> <a href="/competitions">Wróć do listy zawodów</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Competition Competition { get; set; } = new();
+
+    public async Task AddCompetition()
+    {
+        DB.Competitions.Add(Competition);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/competitions");
+    }
+}

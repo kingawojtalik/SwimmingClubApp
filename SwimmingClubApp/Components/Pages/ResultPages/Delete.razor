@@ -1,0 +1,79 @@
+﻿@page "/results/delete"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Usuwanie wyników</PageTitle>
+
+<h3>Czy na pewno chcesz usunąć wybrane wyniki?</h3>
+<div>
+    <hr />
+    @if (result is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Zawodnik</dt>
+            <dd class="col-sm-10">@result.Swimmer.FirstName @result.Swimmer.LastName </dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Zawody</dt>
+            <dd class="col-sm-10">@result.Competition.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Dystans [m]</dt>
+            <dd class="col-sm-10">@result.Distance</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Styl pływacki</dt>
+            <dd class="col-sm-10">@result.Stroke</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Czas</dt>
+            <dd class="col-sm-10">@result.Time</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Punkty</dt>
+            <dd class="col-sm-10">@result.Point</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Miejsce</dt>
+            <dd class="col-sm-10">@result.Place</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Medal</dt>
+            <dd class="col-sm-10">@result.Medal</dd>
+        </dl>
+        <EditForm method="post" Model="result" OnValidSubmit="DeleteResult" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(result is null)">Usuń</button>
+            <br /> <br /> <a href="/results">Wróć do listy wyników</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    Result? result;
+
+    [SupplyParameterFromQuery]
+    public int ResultId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        result = await DB.Results.Include(s => s.Swimmer).Include(s => s.Competition).FirstOrDefaultAsync(m => m.ResultId == ResultId);
+
+        if (result is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteResult()
+    {
+        DB.Results.Remove(result!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/results");
+    }
+}

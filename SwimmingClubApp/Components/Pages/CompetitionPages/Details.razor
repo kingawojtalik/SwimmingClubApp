@@ -1,0 +1,102 @@
+﻿@page "/competitions/details"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Szczegóły zawodów</PageTitle>
+
+<div>
+    <h4>Wybrane zawody</h4>
+    <hr />
+    @if (competition is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Nazwa</dt>
+            <dd class="col-sm-10">@competition.Name</dd>
+            <dt class="col-sm-2">Data</dt>
+            <dd class="col-sm-10">@competition.Date</dd>
+            <dt class="col-sm-2">Miasto</dt>
+            <dd class="col-sm-10">@competition.City</dd>
+        </dl>
+        <div>
+            <a href="@($"/competitions/edit?competitionid={competition.CompetitionId}")">Edytuj</a> |
+            <a href="@($"/competitions")">Wróć do listy zawodów</a><br /><br />
+        </div>
+        <div>
+            <h5>Wyniki z zawodów </h5>
+
+            <hr />
+            @if (competitionResults.Any())
+            {
+                <div>
+                    <p>
+                        <strong> Liczba zdobytych medali ogółem:</strong> @(competitionResults.Count(r => r.Medal == "złoty" || r.Medal == "srebrny" || r.Medal == "brązowy")),<br /> w tym: <br />
+                        <strong>złoty</strong> - @(competitionResults.Count(r => r.Medal == "złoty")),<br />
+                        <strong>srebrny</strong>  - @(competitionResults.Count(r => r.Medal == "srebrny")),<br />
+                        <strong>brązowy</strong>  - @(competitionResults.Count(r => r.Medal == "brązowy")).
+                    </p>
+                </div>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Zawodnik</th>
+                            <th>Dystans [m]</th>
+                            <th>Styl pływacki</th>
+                            <th>Czas</th>
+                            <th>Punkty</th>
+                            <th>Miejsce</th>
+                            <th>Medal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var result in competitionResults)
+                        {
+                            <tr>
+                                <td>@result.Swimmer.FullName</td>
+                                <td>@result.Distance</td>
+                                <td>@result.Stroke</td>
+                                <td>@result.Time.ToString(@"mm\:ss\.ff")</td>
+                                <td>@result.Point</td>
+                                <td>@result.Place</td>
+                                <td>@result.Medal</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <br />
+            }
+            else
+            {
+                <p><em>Brak wyników.</em></p>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    Competition? competition;
+    List<Result> competitionResults = new List<Result>();
+
+    [SupplyParameterFromQuery]
+    public int CompetitionId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        competition = await DB.Competitions.FirstOrDefaultAsync(c => c.CompetitionId == CompetitionId);
+
+        if (competition is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            competitionResults = await DB.Results.Include(t => t.Swimmer).Where(r => r.CompetitionId == CompetitionId).ToListAsync();
+        }
+    }
+}

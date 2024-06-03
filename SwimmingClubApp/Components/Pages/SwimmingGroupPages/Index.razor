@@ -1,0 +1,24 @@
+﻿@page "/swimminggroups"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@rendermode InteractiveServer
+
+<PageTitle>Grupy pływackie</PageTitle>
+
+<h1>Grupy pływackie</h1>
+
+<QuickGrid Class="table" Items="DB.SwimmingGroups">
+    <PropertyColumn Property="swimminggroup => swimminggroup.Name" Title="Nazwa" />
+    <PropertyColumn Property="swimminggroup => swimminggroup.Level" Title="Poziom" Align="Align.Center" />
+
+    <TemplateColumn Context="swimminggroup">
+        <a href="@($"swimminggroups/details?swimminggroupid={swimminggroup.SwimmingGroupId}")">Szczegóły</a> |
+        <a href="@($"swimminggroups/edit?swimminggroupid={swimminggroup.SwimmingGroupId}")">Edytuj</a> |
+        <a href="@($"swimminggroups/delete?swimminggroupid={swimminggroup.SwimmingGroupId}")">Usuń</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<p>
+    <a href="swimminggroups/create">Utwórz nową grupę pływacką</a>
+</p>

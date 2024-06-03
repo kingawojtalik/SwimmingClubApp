@@ -1,0 +1,94 @@
+﻿@page "/competitions/edit"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Edycja</PageTitle>
+
+<h1>Edycja wybranych zawodów</h1>
+
+<hr />
+@if (Competition is null)
+{
+    <p><em>Wczytywanie...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Competition" OnValidSubmit="UpdateCompetition" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Competition.CompetitionId" value="@Competition.CompetitionId" />
+                <div class="mb-3">
+                    <label for="name" class="form-label">Nazwa:</label>
+                    <InputText id="name" @bind-Value="Competition.Name" class="form-control" />
+                    <ValidationMessage For="() => Competition.Name" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="date" class="form-label">Data:</label>
+                    <InputDate id="date" @bind-Value="Competition.Date" class="form-control" />
+                    <ValidationMessage For="() => Competition.Date" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="city" class="form-label">Miasto:</label>
+                    <InputText id="city" @bind-Value="Competition.City" class="form-control" />
+                    <ValidationMessage For="() => Competition.City" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <br /> <a href="/competitions">Wróć do listy zawodów</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int CompetitionId { get; set; }
+
+    [SupplyParameterFromForm]
+    public Competition? Competition { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Competition ??= await DB.Competitions.FirstOrDefaultAsync(m => m.CompetitionId == CompetitionId);
+
+        if (Competition is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+
+    public async Task UpdateCompetition()
+    {
+        DB.Attach(Competition!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!CompetitionExists(Competition!.CompetitionId))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/competitions");
+    }
+
+    bool CompetitionExists(int competitionid)
+    {
+        return DB.Competitions.Any(e => e.CompetitionId == competitionid);
+    }
+}

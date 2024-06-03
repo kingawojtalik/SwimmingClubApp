@@ -1,0 +1,38 @@
+﻿@page "/competitions"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@rendermode InteractiveServer
+
+<PageTitle>Zawody</PageTitle>
+
+<h1>Zawody</h1>
+
+<QuickGrid Class="table" Items="FilteredCompetitions">
+    <PropertyColumn Property="competition => competition.Name" Title="Nazwa">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="nameFilter" @bind:event="oninput" placeholder="Nazwa zawodów..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="competition => competition.Date" Title="Data" Sortable="true" Align="Align.Center" />
+    <PropertyColumn Property="competition => competition.City" Title="Miasto" Align="Align.Center" />
+
+    <TemplateColumn Context="competition">
+        <a href="@($"competitions/details?competitionid={competition.CompetitionId}")">Szczegóły</a> |
+        <a href="@($"competitions/edit?competitionid={competition.CompetitionId}")">Edytuj</a> |
+        <a href="@($"competitions/delete?competitionid={competition.CompetitionId}")">Usuń</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<p>
+    <a href="competitions/create">Utwórz nowe wydarzenie</a>
+</p>
+
+@code {
+    string nameFilter = "";
+
+    IQueryable<Competition> FilteredCompetitions => DB.Competitions.Where(c => c.Name.Contains(nameFilter));
+}
+

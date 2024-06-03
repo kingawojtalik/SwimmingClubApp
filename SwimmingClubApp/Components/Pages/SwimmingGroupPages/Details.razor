@@ -1,0 +1,82 @@
+﻿@page "/swimminggroups/details"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Szczegóły</PageTitle>
+
+<div>
+    <h4>Wybrana grupa pływacka</h4>
+    <hr />
+    @if (swimmingGroup is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Nazwa</dt>
+            <dd class="col-sm-10">@swimmingGroup.Name</dd>
+            <dt class="col-sm-2">Poziom</dt>
+            <dd class="col-sm-10">@swimmingGroup.Level</dd>
+        </dl>
+        <div>
+            <a href="@($"/swimminggroups/edit?swimminggroupid={swimmingGroup.SwimmingGroupId}")">Edytuj</a> |
+            <a href="@($"/swimminggroups")">Wróć do listy grup pływackich</a><br /><br />
+        </div>
+
+        <div>
+            <h5>Liczba zawodników w grupie @swimmingGroup.Name: @numberOfSwimmers</h5>
+            <hr />
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Imię</th>
+                        <th>Nazwisko</th>
+                        <th>Data urodzenia</th>
+                        <th>Płeć</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var swimmer in assignedSwimmers)
+                    {
+                        <tr>
+                            <td>@swimmer.FirstName</td>
+                            <td>@swimmer.LastName</td>
+                            <td>@swimmer.BirthDate.ToShortDateString()</td>
+                            <td>@swimmer.Gender</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+
+
+@code {
+    SwimmingGroup? swimmingGroup;
+    List<Swimmer> assignedSwimmers = new List<Swimmer>();
+    int numberOfSwimmers;
+
+    [SupplyParameterFromQuery]
+    public int SwimmingGroupId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        swimmingGroup = await DB.SwimmingGroups.FirstOrDefaultAsync(m => m.SwimmingGroupId == SwimmingGroupId);
+
+        if (swimmingGroup is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            assignedSwimmers = await DB.Swimmers.Where(s => s.SwimmingGroupId == SwimmingGroupId).ToListAsync();
+
+            numberOfSwimmers = await DB.Swimmers.Where(s => s.SwimmingGroupId == SwimmingGroupId).CountAsync();
+        }
+    }
+}

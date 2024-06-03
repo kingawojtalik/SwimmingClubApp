@@ -1,0 +1,63 @@
+﻿@page "/trainings/delete"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Usuwanie treningu</PageTitle>
+
+<h3>Czy na pewno chcesz usunąć wybrany trening?</h3>
+<div>
+    <hr />
+    @if (training is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Grupa pływacka</dt>
+            <dd class="col-sm-10">@training.SwimmingGroup.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Miejsce</dt>
+            <dd class="col-sm-10">@training.Location</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Dzień tygodnia</dt>
+            <dd class="col-sm-10">@training.TrainingDay</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Godzina</dt>
+            <dd class="col-sm-10">@training.TrainingTime</dd>
+        </dl>
+        <EditForm method="post" Model="training" OnValidSubmit="DeleteTraining" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(training is null)">Usuń</button>
+            <br /> <br /> <a href="/trainings">Wróć do listy treningów</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    Training? training;
+
+    [SupplyParameterFromQuery]
+    public int TrainingId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        training = await DB.Trainings.Include(t => t.SwimmingGroup).FirstOrDefaultAsync(m => m.TrainingId == TrainingId);
+
+        if (training is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteTraining()
+    {
+        DB.Trainings.Remove(training!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/trainings");
+    }
+}

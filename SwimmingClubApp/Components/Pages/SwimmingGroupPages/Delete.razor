@@ -1,0 +1,55 @@
+﻿@page "/swimminggroups/delete"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Usuwanie grupy pływackiej</PageTitle>
+
+<h3>Czy na pewno chcesz usunąć wybrana grupę pływacką?</h3>
+<div>
+    <hr />
+    @if (swimminggroup is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Nazwa</dt>
+            <dd class="col-sm-10">@swimminggroup.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Poziom</dt>
+            <dd class="col-sm-10">@swimminggroup.Level</dd>
+        </dl>
+        <EditForm method="post" Model="swimminggroup" OnValidSubmit="DeleteSwimmingGroup" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(swimminggroup is null)">Usuń</button>
+            <br /><br /> <a href="/swimminggroups">Wróć do listy grup pływackich</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    SwimmingGroup? swimminggroup;
+
+    [SupplyParameterFromQuery]
+    public int SwimmingGroupId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        swimminggroup = await DB.SwimmingGroups.FirstOrDefaultAsync(m => m.SwimmingGroupId == SwimmingGroupId);
+
+        if (swimminggroup is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteSwimmingGroup()
+    {
+        DB.SwimmingGroups.Remove(swimminggroup!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/swimminggroups");
+    }
+}

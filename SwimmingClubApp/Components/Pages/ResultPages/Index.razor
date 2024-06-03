@@ -1,0 +1,78 @@
+﻿@page "/results"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+<PageTitle>Wyniki</PageTitle>
+
+<h1>Wyniki</h1>
+
+<QuickGrid Class="table" Items="FilteredResults">
+    <PropertyColumn Property="result => result.Swimmer.FirstName" Title="Imię" />
+    <PropertyColumn Property="result => result.Swimmer.LastName" Title="Nazwisko">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="nameFilter" @bind:event="oninput" placeholder="Nazwisko zawodnika..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="result => result.Swimmer.BirthDate.Year" Title="Rocznik">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="yearFilter" @bind:event="oninput" placeholder="Rok urodzenia..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="result => result.Competition.Name" Title="Zawody">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="competitionFilter" @bind:event="oninput" placeholder="Zawody..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="result => result.Distance" Title="Dystans [m]" Align="Align.Center">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="distanceFilter" @bind:event="oninput" placeholder="Dystans..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="result => result.Stroke" Title="Styl pływacki" Align="Align.Center">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="styleFilter" @bind:event="oninput" placeholder="Styl pływacki..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="result => result.Time" Title="Czas" Sortable="true" Align="Align.Center" Format="mm\:ss\.ff" />
+    <PropertyColumn Property="result => result.Point" Title="Punkty" Sortable="true" Align="Align.Center" />
+    <PropertyColumn Property="result => result.Place" Title="Miejsce" Sortable="true" Align="Align.Center" />
+    <PropertyColumn Property="result => result.Medal" Title="Medal" Align="Align.Center" />
+
+    <TemplateColumn Context="result">
+        <a href="@($"results/details?resultid={result.ResultId}")">Szczegóły</a> |
+        <a href="@($"results/edit?resultid={result.ResultId}")">Edytuj</a> |
+        <a href="@($"results/delete?resultid={result.ResultId}")">Usuń</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<p>
+    <a href="results/create">Dodaj nowe wyniki</a>
+</p>
+
+@code {
+    string nameFilter = "";
+    string styleFilter = "";
+    string yearFilter = "";
+    string distanceFilter = "";
+    string competitionFilter = "";
+
+    IQueryable<Result> FilteredResults => DB.Results
+        .Include(r => r.Swimmer)
+        .Include(r => r.Competition)
+        .Where(r => r.Swimmer.LastName.Contains(nameFilter) && r.Stroke.Contains(styleFilter) && r.Swimmer.BirthDate.Year.ToString().Contains(yearFilter) && r.Distance.ToString().Contains(distanceFilter) && r.Competition.Name.Contains(competitionFilter));
+}
+
+

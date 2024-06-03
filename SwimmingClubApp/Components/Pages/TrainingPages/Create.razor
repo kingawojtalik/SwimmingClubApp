@@ -1,0 +1,69 @@
+﻿@page "/trainings/create"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+
+<PageTitle>Nowy trening</PageTitle>
+
+<h4>Nowy trening:</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Training" OnValidSubmit="AddTraining" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="swimminggroupid" class="form-label">Grupa pływacka:</label>
+                    <InputSelect id="swimminggroupid" @bind-Value="Training.SwimmingGroupId" class="form-control">
+                        <option value="">Wybierz grupę pływacką...</option>
+                        @foreach (var swimminggroup in SwimmingGroups)
+                        {
+                            <option value="@swimminggroup.SwimmingGroupId">@swimminggroup.Name</option>
+                        }
+                    </InputSelect>
+                <ValidationMessage For="() => Training.SwimmingGroupId" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="location" class="form-label">Miejsce:</label>
+                <InputText id="location" @bind-Value="Training.Location" class="form-control" />
+                <ValidationMessage For="() => Training.Location" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="trainingday" class="form-label">Dzień tygodnia:</label>
+                <InputText id="trainingday" @bind-Value="Training.TrainingDay" class="form-control" />
+                <ValidationMessage For="() => Training.TrainingDay" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="trainingtime" class="form-label">Godzina:</label>
+                <InputDate Type="InputDateType.Time" id="trainingtime" @bind-Value="Training.TrainingTime" class="form-control" />
+                <ValidationMessage For="() => Training.TrainingTime" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Utwórz</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <br /> <a href="/trainings">Wróć do listy treningów</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Training Training { get; set; } = new();
+
+    List<SwimmingGroup> SwimmingGroups = new List<SwimmingGroup>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SwimmingGroups = await DB.SwimmingGroups.ToListAsync();
+    }
+
+    public async Task AddTraining()
+    {
+        DB.Trainings.Add(Training);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/trainings");
+    }
+}

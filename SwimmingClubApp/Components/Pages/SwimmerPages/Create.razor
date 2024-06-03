@@ -1,0 +1,78 @@
+﻿@page "/swimmers/create"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+
+<PageTitle>Nowy zawodnik</PageTitle>
+
+<h4>Nowy zawodnik:</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Swimmer" OnValidSubmit="AddSwimmer" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="firstname" class="form-label">Imię:</label>
+                <InputText id="firstname" @bind-Value="Swimmer.FirstName" class="form-control" />
+                <ValidationMessage For="() => Swimmer.FirstName" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="lastname" class="form-label">Nazwisko:</label>
+                <InputText id="lastname" @bind-Value="Swimmer.LastName" class="form-control" />
+                <ValidationMessage For="() => Swimmer.LastName" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="birthdate" class="form-label">Data urodzenia:</label>
+                <InputDate id="birthdate" @bind-Value="Swimmer.BirthDate" class="form-control" />
+                <ValidationMessage For="() => Swimmer.BirthDate" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="gender" class="form-label">Płeć:</label>
+                <InputSelect id="gender" @bind-Value="Swimmer.Gender" class="form-control">
+                    <option value="">Wybierz płeć...</option>
+                    <option value="K">K</option>
+                    <option value="M">M</option>
+                </InputSelect>
+                <ValidationMessage For="() => Swimmer.Gender" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="swimminggroupid" class="form-label">Grupa pływacka:</label>
+                <InputSelect id="swimminggroupid" @bind-Value="Swimmer.SwimmingGroupId" class="form-control">
+                    <option value="">Wybierz grupę pływacką...</option>
+                    @foreach (var swimminggroup in SwimmingGroups)
+                    {
+                        <option value="@swimminggroup.SwimmingGroupId">@swimminggroup.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Swimmer.SwimmingGroupId" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Utwórz</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <br /> <a href="/swimmers">Wróć do listy zawodników</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Swimmer Swimmer { get; set; } = new();
+
+    List<SwimmingGroup> SwimmingGroups = new List<SwimmingGroup>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        SwimmingGroups = await DB.SwimmingGroups.ToListAsync();
+    }
+
+    public async Task AddSwimmer()
+    {
+        DB.Swimmers.Add(Swimmer);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/swimmers");
+    }
+}

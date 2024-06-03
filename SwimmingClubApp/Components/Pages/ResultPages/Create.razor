@@ -1,0 +1,131 @@
+﻿@page "/results/create"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@using Microsoft.EntityFrameworkCore
+@inject NavigationManager NavigationManager
+
+<PageTitle>Nowe wyniki</PageTitle>
+
+<h4>Nowy wyniki:</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="Result" OnValidSubmit="AddResult" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="swimmerid" class="form-label">Zawodnik:</label>
+                <InputSelect id="swimmerid" @bind-Value="Result.SwimmerId" class="form-control">
+                    <option value="">Wybierz zawodnika...</option>
+                    @foreach (var swimmer in Swimmers)
+                    {
+                        <option value="@swimmer.SwimmerId">@swimmer.FirstName @swimmer.LastName</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Result.SwimmerId" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="competitionid" class="form-label">Zawody:</label>
+                <InputSelect id="competitionid" @bind-Value="Result.CompetitionId" class="form-control">
+                    <option value="">Wybierz zawody...</option>
+                    @foreach (var competition in Competitions)
+                    {
+                        <option value="@competition.CompetitionId">@competition.Name</option>
+                    }
+                </InputSelect>
+                <ValidationMessage For="() => Result.CompetitionId" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="distance" class="form-label">Dystans:</label>
+                <InputRadioGroup id="distance" @bind-Value="Result.Distance" class="form-control">
+                    <br />
+                    <InputRadio Value="25" /> 25 m <br />
+                    <InputRadio Value="50" /> 50 m <br />
+                    <InputRadio Value="100" /> 100 m
+                </InputRadioGroup>
+                <ValidationMessage For="() => Result.Distance" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="stroke" class="form-label">Styl pływacki:</label>
+                <InputSelect id="stroke" @bind-Value="Result.Stroke" class="form-control">
+                    <option value=""> Wybierz styl pływacki... </option>
+                    <option value="dowolny">dowolny</option>
+                    <option value="grzbietowy">grzbietowy</option>
+                    <option value="klasyczny">klasyczny</option>
+                    <option value="motylkowy">motylkowy</option>
+                </InputSelect>
+                <ValidationMessage For="() => Result.Stroke" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="time" class="form-label">Czas:</label>
+                <div class="row">
+                    <div class="col">
+                        <label for="minutes">Minuty:</label>
+                        <InputNumber id="minutes" @bind-Value="Result.Minutes" class="form-control" />
+                        <ValidationMessage For="() => Result.Minutes" class="text-danger" />
+                    </div>
+                    <div class="col">
+                        <label for="seconds">Sekundy:</label>
+                        <InputNumber id="seconds" @bind-Value="Result.Seconds" class="form-control" />
+                        <ValidationMessage For="() => Result.Seconds" class="text-danger" />
+                    </div>
+                    <div class="col">
+                        <label for="miliseconds">Setne sekundy:</label>
+                        <InputNumber id="miliseconds" @bind-Value="Result.Miliseconds" class="form-control" />
+                        <ValidationMessage For="() => Result.Miliseconds" class="text-danger" />
+                    </div>
+                </div>
+            </div>
+            <div class="mb-3">
+                <label for="point" class="form-label">Zdobyte punkty:</label>
+                <InputNumber id="point" @bind-Value="Result.Point" class="form-control" />
+                <ValidationMessage For="() => Result.Point" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="place" class="form-label">Zdobyte miejsce:</label>
+                <InputNumber id="place" @bind-Value="Result.Place" class="form-control" />
+                <ValidationMessage For="() => Result.Place" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="medal" class="form-label">Medal:</label>
+                <InputSelect id="medal" @bind-Value="Result.Medal" class="form-control">
+                    <option value=""> Wybierz medal/brak medalu... </option>
+                    <option value="złoty">złoty</option>
+                    <option value="srebrny">srebrny</option>
+                    <option value="brązowy">brązowy</option>
+                    <option value="bez medalu">bez medalu</option>
+                </InputSelect>
+                <ValidationMessage For="() => Result.Medal" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Utwórz</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <br /> <a href="/results">Wróć do listy zawodów</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public Result Result { get; set; } = new();
+
+    List<Swimmer> Swimmers = new List<Swimmer>();
+    List<Competition> Competitions = new List<Competition>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Swimmers = await DB.Swimmers.ToListAsync();
+        Competitions = await DB.Competitions.ToListAsync();
+    }
+
+    public async Task AddResult()
+    {
+
+        Result.Time = Result.CreateTimeSpan();
+        DB.Results.Add(Result);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/results");
+    }
+}

@@ -1,0 +1,113 @@
+﻿@page "/swimmers/edit"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Edycja</PageTitle>
+
+<h1>Edycja wybranego profilu zawodnika</h1>
+
+<hr />
+@if (Swimmer is null)
+{
+    <p><em>Wczytywanie...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4">
+            <EditForm method="post" Model="Swimmer" OnValidSubmit="UpdateSwimmer" FormName="edit" Enhance>
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <input type="hidden" name="Swimmer.SwimmerId" value="@Swimmer.SwimmerId" />
+                <div class="mb-3">
+                    <label for="firstname" class="form-label">Imię:</label>
+                    <InputText id="firstname" @bind-Value="Swimmer.FirstName" class="form-control" />
+                    <ValidationMessage For="() => Swimmer.FirstName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="lastname" class="form-label">Nazwisko:</label>
+                    <InputText id="lastname" @bind-Value="Swimmer.LastName" class="form-control" />
+                    <ValidationMessage For="() => Swimmer.LastName" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="birthdate" class="form-label">Data urodzenia:</label>
+                    <InputDate id="birthdate" @bind-Value="Swimmer.BirthDate" class="form-control" />
+                    <ValidationMessage For="() => Swimmer.BirthDate" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="gender" class="form-label">Płeć:</label>
+                    <InputText id="gender" @bind-Value="Swimmer.Gender" class="form-control" />
+                    <ValidationMessage For="() => Swimmer.Gender" class="text-danger" />
+                </div>
+                <div class="mb-3">
+                    <label for="swimminggroupid" class="form-label">Grupa pływacka:</label>
+                    <InputSelect id="swimminggroupid" @bind-Value="Swimmer.SwimmingGroupId" class="form-control">
+                        <option value="">Wybierz grupę pływacką...</option>
+                        @foreach (var swimminggroup in SwimmingGroups)
+                        {
+                            <option value="@swimminggroup.SwimmingGroupId">@swimminggroup.Name</option>
+                        }
+                    </InputSelect>
+                    <ValidationMessage For="() => Swimmer.SwimmingGroupId" class="text-danger" />
+                </div>
+                <button type="submit" class="btn btn-primary">Zapisz zmiany</button>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<div>
+    <br /> <a href="/swimmers">Wróć do listy zawodników</a>
+</div>
+
+@code {
+    [SupplyParameterFromQuery]
+    public int SwimmerId { get; set; }
+
+    [SupplyParameterFromForm]
+    public Swimmer? Swimmer { get; set; }
+
+    List<SwimmingGroup> SwimmingGroups = new List<SwimmingGroup>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        Swimmer ??= await DB.Swimmers.FirstOrDefaultAsync(m => m.SwimmerId == SwimmerId);
+
+        if (Swimmer is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+
+        SwimmingGroups = await DB.SwimmingGroups.ToListAsync();
+    }
+
+    public async Task UpdateSwimmer()
+    {
+        DB.Attach(Swimmer!).State = EntityState.Modified;
+
+        try
+        {
+            await DB.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            if (!SwimmerExists(Swimmer!.SwimmerId))
+            {
+                NavigationManager.NavigateTo("notfound");
+            }
+            else
+            {
+                throw;
+            }
+        }
+
+        NavigationManager.NavigateTo("/swimmers");
+    }
+
+    bool SwimmerExists(int swimmerid)
+    {
+        return DB.Swimmers.Any(e => e.SwimmerId == swimmerid);
+    }
+}

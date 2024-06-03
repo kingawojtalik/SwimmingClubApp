@@ -1,0 +1,50 @@
+﻿@page "/swimminggroups/create"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+
+<PageTitle>Nowa grupa pływacka</PageTitle>
+
+<h4>Nowa grupa pływacka:</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <EditForm method="post" Model="SwimmingGroup" OnValidSubmit="AddSwimmingGroup" FormName="create" Enhance>
+            <DataAnnotationsValidator />
+            <ValidationSummary class="text-danger" />
+            <div class="mb-3">
+                <label for="name" class="form-label">Nazwa:</label>
+                <InputText id="name" @bind-Value="SwimmingGroup.Name" class="form-control" />
+                <ValidationMessage For="() => SwimmingGroup.Name" class="text-danger" />
+            </div>
+            <div class="mb-3">
+                <label for="level" class="form-label">Poziom:</label>
+                <InputSelect id="level" @bind-Value="SwimmingGroup.Level" class="form-control">
+                    <option value="">Wybierz poziom grupy pływackiej...</option>
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                </InputSelect>
+                <ValidationMessage For="() => SwimmingGroup.Level" class="text-danger" />
+            </div>
+            <button type="submit" class="btn btn-primary">Utwórz</button>
+        </EditForm>
+    </div>
+</div>
+
+<div>
+    <br /> <a href="/swimminggroups">Wróć do listy grup pływackich</a>
+</div>
+
+@code {
+
+    [SupplyParameterFromForm]
+    public SwimmingGroup SwimmingGroup { get; set; } = new();
+
+    public async Task AddSwimmingGroup()
+    {
+        DB.SwimmingGroups.Add(SwimmingGroup);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/swimminggroups");
+    }
+}

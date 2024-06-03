@@ -1,0 +1,49 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="bi bi-tsunami-nav-menu" href=""> </a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Strona główna
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="swimmers">
+                <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Zawodnicy
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="swimminggroups">
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Grupy pływackie
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="trainings">
+                <span class="bi bi-calendar2-week-fill-nav-menu" aria-hidden="true"></span> Treningi
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="competitions">
+                <span class="bi bi-award-fill-nav-menu" aria-hidden="true"></span> Zawody
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="results">
+                <span class="bi bi-table-nav-menu" aria-hidden="true"></span> Wyniki
+            </NavLink>
+        </div>
+
+    </nav>
+</div>
+

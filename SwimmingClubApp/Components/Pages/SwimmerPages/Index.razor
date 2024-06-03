@@ -1,0 +1,40 @@
+﻿@page "/swimmers"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+<PageTitle>Zawodnicy</PageTitle>
+
+<h1>Zawodnicy</h1>
+
+<QuickGrid Class="table" Items="FilteredSwimmers">
+    <PropertyColumn Property="swimmer => swimmer.FirstName" Title="Imię" />
+    <PropertyColumn Property="swimmer => swimmer.LastName" Title="Nazwisko">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="nameFilter" @bind:event="oninput" placeholder="Nazwisko zawodnika..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="swimmer => swimmer.BirthDate" Title="Data urodzenia" Sortable="true" Align="Align.Center" />
+    <PropertyColumn Property="swimmer => swimmer.Gender" Title="Płeć" Align="Align.Center" />
+    <PropertyColumn Property="swimmer => swimmer.SwimmingGroup.Name" Title="Grupa pływacka" Sortable="true" Align="Align.Center" />
+
+    <TemplateColumn Context="swimmer">
+        <a href="@($"swimmers/details?swimmerid={swimmer.SwimmerId}")">Szczegóły</a> |
+        <a href="@($"swimmers/edit?swimmerid={swimmer.SwimmerId}")">Edytuj</a> |
+        <a href="@($"swimmers/delete?swimmerid={swimmer.SwimmerId}")">Usuń</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<p>
+    <a href="swimmers/create">Utwórz profil nowego zawodnika</a>
+</p>
+
+@code {
+    string nameFilter = "";
+
+    IQueryable<Swimmer> FilteredSwimmers => DB.Swimmers.Include(s => s.SwimmingGroup).Where(s => s.LastName.Contains(nameFilter));
+}

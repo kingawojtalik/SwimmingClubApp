@@ -1,0 +1,58 @@
+﻿@page "/results/details"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Szczegóły</PageTitle>
+
+<div>
+    <h4>Wybrane wyniki</h4>
+    <hr />
+    @if (result is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Zawodnik</dt>
+            <dd class="col-sm-10">@result.Swimmer.FirstName @result.Swimmer.LastName </dd>
+            <dt class="col-sm-2">Zawody</dt>
+            <dd class="col-sm-10">@result.Competition.Name</dd>
+            <dt class="col-sm-2">Dystans</dt>
+            <dd class="col-sm-10">@result.Distance</dd>
+            <dt class="col-sm-2">Styl pływacki</dt>
+            <dd class="col-sm-10">@result.Stroke</dd>
+            <dt class="col-sm-2">Czas</dt>
+            <dd class="col-sm-10">@result.Time.ToString(@"mm\:ss\.ff") </dd>
+            <dt class="col-sm-2">Punkty</dt>
+            <dd class="col-sm-10">@result.Point</dd>
+            <dt class="col-sm-2">Miejsce</dt>
+            <dd class="col-sm-10">@result.Place</dd>
+            <dt class="col-sm-2">Medal</dt>
+            <dd class="col-sm-10">@result.Medal</dd>
+        </dl>
+        <div>
+            <a href="@($"/results/edit?resultid={result.ResultId}")">Edytuj</a> |
+            <a href="@($"/results")">Wróć do listy wyników</a>
+        </div>
+    }
+</div>
+
+@code {
+    Result? result;
+
+    [SupplyParameterFromQuery]
+    public int ResultId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        result = await DB.Results.Include(r => r.Swimmer).Include(r => r.Competition).FirstOrDefaultAsync(m => m.ResultId == ResultId);
+
+        if (result is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+}

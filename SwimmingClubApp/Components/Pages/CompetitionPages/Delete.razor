@@ -1,0 +1,59 @@
+﻿@page "/competitions/delete"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Usuwanie wydarzenia</PageTitle>
+
+<h3>Czy na pewno chcesz usunąć wybrane zawody?</h3>
+<div>
+    <hr />
+    @if (competition is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Nazwa</dt>
+            <dd class="col-sm-10">@competition.Name</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Data</dt>
+            <dd class="col-sm-10">@competition.Date</dd>
+        </dl>
+        <dl class="row">
+            <dt class="col-sm-2">Miasto</dt>
+            <dd class="col-sm-10">@competition.City</dd>
+        </dl>
+        <EditForm method="post" Model="competition" OnValidSubmit="DeleteCompetition" FormName="delete" Enhance>
+            <button type="submit" class="btn btn-danger" disabled="@(competition is null)">Usuń</button>
+            <br /> <br /> <a href="/competitions">Wróć do listy zawodów</a>
+        </EditForm>
+    }
+</div>
+
+@code {
+    Competition? competition;
+
+    [SupplyParameterFromQuery]
+    public int CompetitionId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        competition = await DB.Competitions.FirstOrDefaultAsync(m => m.CompetitionId == CompetitionId);
+
+        if (competition is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+    }
+
+    public async Task DeleteCompetition()
+    {
+        DB.Competitions.Remove(competition!);
+        await DB.SaveChangesAsync();
+        NavigationManager.NavigateTo("/competitions");
+    }
+}

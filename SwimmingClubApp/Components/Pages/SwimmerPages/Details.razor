@@ -1,0 +1,80 @@
+﻿@page "/swimmers/details"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Szczegóły</PageTitle>
+
+<div>
+    <h4>Wybrany zawodnik</h4>
+    <hr />
+    @if (swimmer is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Imię</dt>
+            <dd class="col-sm-10">@swimmer.FirstName</dd>
+            <dt class="col-sm-2">Nazwisko</dt>
+            <dd class="col-sm-10">@swimmer.LastName</dd>
+            <dt class="col-sm-2">Data urodzenia</dt>
+            <dd class="col-sm-10">@swimmer.BirthDate</dd>
+            <dt class="col-sm-2">Płeć</dt>
+            <dd class="col-sm-10">@swimmer.Gender</dd>
+            <dt class="col-sm-2">Grupa pływacka</dt>
+            <dd class="col-sm-10">@swimmer.SwimmingGroup.Name</dd>
+        </dl>
+        <div>
+            <a href="@($"/swimmers/edit?swimmerid={swimmer.SwimmerId}")">Edytuj</a> |
+            <a href="@($"/swimmers")">Wróć do listy zawodników</a><br /><br />
+        </div>
+
+        <div>
+            <h5>Lista treningów</h5>
+            <hr />
+            @if (swimmerTrainings.Any())
+            {
+                <ul>
+                    @foreach (var training in swimmerTrainings)
+                    {
+                        <li>
+                            <strong>Dzień tygodnia:</strong> @training.TrainingDay<br />
+                            <strong>Godzina:</strong> @training.TrainingTime<br />
+                            <strong>Miejsce:</strong> @training.Location
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p><em>Brak treningów dla tego zawodnika.</em></p>
+            }
+        </div>
+
+    }
+</div>
+
+@code {
+    Swimmer? swimmer;
+    List<Training> swimmerTrainings = new List<Training>();
+
+    [SupplyParameterFromQuery]
+    public int SwimmerId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        swimmer = await DB.Swimmers.Include(s => s.SwimmingGroup).FirstOrDefaultAsync(m => m.SwimmerId == SwimmerId);
+
+        if (swimmer is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            swimmerTrainings = await DB.Trainings.Where(t => t.SwimmingGroupId == swimmer.SwimmingGroupId).ToListAsync();
+        }
+    }
+}

@@ -1,0 +1,39 @@
+﻿@page "/trainings"
+@using Microsoft.AspNetCore.Components.QuickGrid
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@using Microsoft.EntityFrameworkCore
+@rendermode InteractiveServer
+
+<PageTitle>Treningi</PageTitle>
+
+<h1>Treningi</h1>
+
+<QuickGrid Class="table" Items="FilteredTrainings">
+    <PropertyColumn Property="training => training.SwimmingGroup.Name" Title="Grupa pływacka">
+        <ColumnOptions>
+            <div class="search-box">
+                <input type="search" @bind="nameFilter" @bind:event="oninput" placeholder="Grupa pływacka..." autofocus />
+            </div>
+        </ColumnOptions>
+    </PropertyColumn>
+    <PropertyColumn Property="training => training.Location" Title="Miejsce" Sortable="true" />
+    <PropertyColumn Property="training => training.TrainingDay" Title="Dzień tygodnia" Sortable="true" Align="Align.Center" />
+    <PropertyColumn Property="training => training.TrainingTime" Title="Godzina" Align="Align.Center" />
+
+    <TemplateColumn Context="training">
+        <a href="@($"trainings/details?trainingid={training.TrainingId}")">Szczegóły</a> |
+        <a href="@($"trainings/edit?trainingid={training.TrainingId}")">Edytuj</a> |
+        <a href="@($"trainings/delete?trainingid={training.TrainingId}")">Usuń</a>
+    </TemplateColumn>
+</QuickGrid>
+
+<p>
+    <a href="trainings/create">Utwórz nowy trening</a>
+</p>
+
+@code {
+    string nameFilter = "";
+
+    IQueryable<Training> FilteredTrainings => DB.Trainings.Include(t => t.SwimmingGroup).Where(t => t.SwimmingGroup.Name.Contains(nameFilter));
+}

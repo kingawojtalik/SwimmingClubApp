@@ -1,0 +1,88 @@
+﻿@page "/trainings/details"
+@inject SwimmingClubApp.Data.SwimmingClubAppContext DB
+@using SwimmingClubApp.Models
+@inject NavigationManager NavigationManager
+@using Microsoft.EntityFrameworkCore
+
+<PageTitle>Szczegóły</PageTitle>
+
+<div>
+    <h4>Wybrany trening</h4>
+    <hr />
+    @if (training is null)
+    {
+        <p><em>Wczytywanie...</em></p>
+    }
+    else
+    {
+        <dl class="row">
+            <dt class="col-sm-2">Grupa pływacka</dt>
+            <dd class="col-sm-10">@training.SwimmingGroup.Name</dd>
+            <dt class="col-sm-2">Miejsce</dt>
+            <dd class="col-sm-10">@training.Location</dd>
+            <dt class="col-sm-2">Dzień tygodnia</dt>
+            <dd class="col-sm-10">@training.TrainingDay</dd>
+            <dt class="col-sm-2">Godzina</dt>
+            <dd class="col-sm-10">@training.TrainingTime</dd>
+        </dl>
+        <div>
+            <a href="@($"/trainings/edit?trainingid={training.TrainingId}")">Edytuj</a> |
+            <a href="@($"/trainings")">Wróć do listy treningów</a><br /><br />
+        </div>
+
+        <div>
+            <h5>Zawodnicy trenujący w grupie @training.SwimmingGroup.Name</h5>
+            <hr />
+            @if (assignedSwimmers.Any())
+            {
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Imię</th>
+                            <th>Nazwisko</th>
+                            <th>Data urodzenia</th>
+                            <th>Płeć</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var swimmer in assignedSwimmers)
+                        {
+                            <tr>
+                                <td>@swimmer.FirstName</td>
+                                <td>@swimmer.LastName</td>
+                                <td>@swimmer.BirthDate.ToShortDateString()</td>
+                                <td>@swimmer.Gender</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p><em>Brak zawodników trenujących w tej grupie.</em></p>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    Training? training;
+    List<Swimmer> assignedSwimmers = new List<Swimmer>();
+
+    [SupplyParameterFromQuery]
+    public int TrainingId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        training = await DB.Trainings.Include(t => t.SwimmingGroup).FirstOrDefaultAsync(m => m.TrainingId == TrainingId);
+
+        if (training is null)
+        {
+            NavigationManager.NavigateTo("notfound");
+        }
+        else
+        {
+            assignedSwimmers = await DB.Swimmers.Where(s => s.SwimmingGroupId == training.SwimmingGroupId).ToListAsync();
+        }
+    }
+}
